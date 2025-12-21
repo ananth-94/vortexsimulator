@@ -1,0 +1,192 @@
+Usage notes for codes to study stabilization and dynamics of superfluid vortices in a neutron star - Anantharaman S V, Ashoka University
+
+
+This document details the purpose and usage of the following codes:
+
+sim.cpp
+glitch_finder.cpp
+glitch_finder_multi.cpp
+sim_vortex_anim.py
+
+
+#### sim.cpp ####
+Version 1 of code completed - Aug 20, 2022, 16:00:00
+Version 2 of code completed - Apr 01, 2023, 05:00:00 
+Version 3 of code completed - Jan 07, 2024, 06:00:00
+Version 4 of code completed - May 29, 2024, 13:00:00
+Version 4 of code completed - Sep 28, 2024, 19:00:00
+
+# Purpose:
+
+This code is used to simulate vortices in a neutron star, given a list of parameters.
+Collective vortex movement is claimed to be responsible for glitches in pulsars.
+This code is devised to help understand that thread of thought.
+We follow closely the methods proposed in Howitt-Melatos-Haskell 2020.
+
+The code further allows for a two-pinning model.
+That is, pinning sites with two different pinning strengths can be populated in a given ratio.
+This is intended to mimic crustal and core pinnings.
+
+# External dependencies or header files required:
+
+Boost
+OpenMP
+
+# Input and output files:
+	
+Input:
+
+None
+
+Output:
+
+info_simulation.dat
+info_progress.dat
+info_glitch.dat
+init_vortex_pos.dat
+init_img_pos.dat
+stabilized_vortex_pos.dat
+stabilized_Hvalues.dat
+sim_vortex_pos.dat
+sim_vortex_pos_minimal.dat
+sim_omega_c.dat
+sim_omega_s.dat
+sim_triggers.dat
+sim_unpinned.dat
+data_glitch.dat
+
+# Usage:
+
+All parameters that can be varied are found in the 'parameter controls' section.
+Controlling the 'Basic' parameters is sufficient for most one-pinning simulations.
+The meanings of the parameters are detailed in the code and are mostly self-explanatory.
+
+Two-pinning simulations:
+
+In case one wishes to run a two-pinning simulation, the 'Advanced' parameters come in handy.
+pin_config determines the type of pinning configuration to be implemented.
+Presently, 'half', 'alternate', and 'annular' are the three available options.
+
+'half' corresponds to the situation where pins of strength V_1 are located only in one half of the star
+and those with strength V_2 are located only in the other half.
+For example, the strengths of a row of pinning sites would look like the following:
+V_1 V_1 V_1 V_1 V_1... V_2 V_2 V_2 V_2 V_2... 
+
+'alternate' corresponds to the scenario where every alternate pinning site carries the same pinning strength.
+For example, the strengths of a row of pinning sites would look like the following:  
+V_1 V_2 V_1 V_2 V_1 V_2 V_1 V_2 V_1 V_2...
+
+'annular' corresponds to the situation where pins of strength V_1 and V_2 are located in two annular sections of the star. The size of the inner disc is set by the r_annulus parameter.
+
+To run a one-pinning simulations, simple set V_1 and V_2 to the same value.
+
+Sectorial triggers:
+
+Triggers are events where the pinning sites in a select region are switched off. The exact size of the region can be selected using the combined effect of sector_count and trig_region. The number of such random triggers to be implemented during the simulation and their duration can also be set using the respective parameters.
+
+Stress-wave:
+
+Such triggers are intended to mimic the effect of normal modes on the vortex array, whereby several highly stressed vortices across the star are unpinned. This stress limit is controlled by the stresswave_threshold parameter. The stresswave can be activated by setting the trig_type parameter to 'stresswave'.
+
+Such a scheme is intended to mimic the possible role that normal modes could play in serving as the trigger for avalanches.
+
+Modules to automatically calculate and write the following have also been added:
+
+Tracking number of unpinned vortices at any instant.
+The times and locations at which triggers occur.
+Finding glitches based on a lower threshold set by epsilon_glitch.
+
+
+#### glitch_finder.cpp ####
+Version 1 of code completed - May 29, 2025, 13:00:00
+
+# Purpose:
+
+This code is designed to extract various information from the simulation data (sim_omega_c.dat):
+Number of glitches, their sizes, the associated waiting times, and the rise time of the glitch.
+The data is then stored in data_glitch.dat.
+The associated statistics is stored in info_glitch.dat.
+
+# External dependencies or header files required:
+
+None
+
+# Input and output files:
+	
+Input:
+
+sim_omega_c.dat
+
+Output:
+
+info_glitch.dat
+data_glitch.dat
+
+# Usage:
+
+No averaging or smoothing is done whatsoever. The lower detection threshold is set using the epsilon parameter. The default of this variable is extremely small, 1e-12. Note that the first of the glitches is completely removed by the detection scheme since a waiting time cannot be associated with it.
+
+Run the code in the directory where the sim_omega_c.dat of interest is.
+
+
+#### glitch_finder_multi.cpp ####
+Version 1 of code completed - May 29, 2025, 13:00:00
+
+# Purpose:
+
+This code serves the same purpose as glitch_finder.cpp except that one can extract the relevant information across several runs at once. In addition, this code also decimates the sim_omega_c.dat finds glitches in the reduced/smoothened data set.
+
+# External dependencies or header files required:
+
+None
+
+# Input and output files:
+	
+Input:
+
+sim_omega_c.dat
+
+Output:
+
+data_glitch_multi.dat
+data_glitch_multi_reduced.dat
+
+# Usage:
+
+The lower detection threshold is set using the epsilon parameter. The default of this variable is extremely small, 1e-12.
+
+Run the code in the directory where the data from several runs are stored in folders named 'run1', 'run2', etc.
+The glitch data from each run will be extracted and stores in the two output files mentioned above.
+The data_glitch_multi_reduced.dat file is created by decimating the original simulation data and then detecting glitches.
+This effectively amounts to smoothing of the data.
+
+
+#### sim_vortex_anim.py ####
+Version 1 of code completed - May 29, 2025, 13:00:00
+
+# Purpose:
+
+This code animates the movement of vortices during a select interval of time in a given simulation.
+
+# External dependencies or header files required:
+
+manim
+
+# Input and output files:
+	
+Input:
+
+sim_vortex_pos_minimal.dat
+sim_omega_c.dat
+
+Output:
+
+MyScene.mp4
+
+# Usage:
+
+The lower detection threshold is set using the epsilon parameter. The default of this variable is extremely small, 1e-12.
+Choose the right data files required.
+Enter the period of interest.
+Change the subtitle accordingly.
+Use the following terminal command to build the video: manim -pqm script_name.py MyScene
